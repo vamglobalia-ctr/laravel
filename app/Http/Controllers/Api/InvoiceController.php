@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Exception;
 class InvoiceController extends Controller
 {
@@ -62,5 +63,51 @@ class InvoiceController extends Controller
             ], 500);
         }
     }
-    
+    public function updateInvoice(Request $request, $id)
+{
+    try {
+        $invoice = Invoice::findOrFail($id);
+
+        $invoice->update([
+            'project_id'             => $request->project_id ?? $invoice->project_id,
+            'client_name'            => $request->client_name ?? $invoice->client_name,
+            'tl'                     => $request->tl ?? $invoice->tl,
+            'invoice_link'           => $request->invoice_link ?? $invoice->invoice_link,
+            'invoice_sent_date'      => $this->convertExcelDate($request->invoice_sent_date ?? $invoice->invoice_sent_date),
+            'invoice_cycle_start'    => $this->convertExcelDate($request->invoice_cycle_start ?? $invoice->invoice_cycle_start),
+            'invoice_cycle_end'      => $this->convertExcelDate($request->invoice_cycle_end ?? $invoice->invoice_cycle_end),
+            'bank_account_name'      => $request->bank_account_name ?? $invoice->bank_account_name,
+            'invoice_status'         => $request->invoice_status ?? $invoice->invoice_status,
+            'amount_usd'             => $request->amount_usd ?? $invoice->amount_usd,
+            'sent_via'               => $request->sent_via ?? $invoice->sent_via,
+            'invoice_release_status' => $request->invoice_release_status ?? $invoice->invoice_release_status,
+            'followup_date'          => $this->convertExcelDate($request->followup_date ?? $invoice->followup_date),
+            'release_amount_date'    => $this->convertExcelDate($request->release_amount_date ?? $invoice->release_amount_date),
+            'release_amount_inr'     => $request->release_amount_inr ?? $invoice->release_amount_inr,
+        ]);
+
+        return response()->json(['status' => true, 'message' => 'Invoice updated successfully', 'data' => $invoice], 200);
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['status' => false, 'message' => 'Invoice not found'], 404);
+    } catch (\Exception $e) {
+        Log::error('Invoice update failed for ID ' . $id . ' | Error: ' . $e->getMessage());
+        return response()->json(['status' => false, 'message' => 'An error occurred while updating invoice'], 500);
+    }
+}
+private function convertExcelDate($value)
+{
+    try {
+        if (is_numeric($value)) {
+            return Date::excelToDateTimeObject($value)->format('Y-m-d');
+        }
+
+        return \Carbon\Carbon::parse($value)->format('Y-m-d');
+    } catch (\Exception $e) {
+        Log::warning('Invalid date format: ' . json_encode($value));
+        return null;
+    }
+}
+
+
 }
