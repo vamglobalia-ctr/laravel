@@ -22,7 +22,7 @@ Route::middleware(['auth:sanctum', 'role:superAdmin'])->group(function () {
     Route::post('/roles', [RoleController::class, 'store'])->middleware('permission:create roles');
     Route::get('/roles', [RoleController::class, 'index']);
     Route::post('/assign-role', [RoleController::class, 'assignRoleToUser']);
-    // Route::post('/assign-permissions', [RoleController::class, 'assignPermissionsToRole']);
+   
 
 });
 
@@ -41,6 +41,7 @@ Route::middleware(['auth:sanctum', 'permission:delete dashboard'])
 
 
 Route::get('/check-permission/{roleId}/', [RoleController::class, 'getRolePermissions']);
+Route::get('/check-role',[RoleController::class,'getAllRoles']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getPermission', [RoleController::class, 'getAllPermissions']);
 });
@@ -48,5 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/invoices/import', [InvoiceController::class,'import'])->middleware('auth:sanctum');
 Route::middleware('auth:sanctum')->put('/update-roles-permission/{id}', [RoleController::class, 'update']);
+Route::get('/getExcelData' , [InvoiceController::class,'getExcelData']);
+Route::middleware('auth:sanctum')->delete('/roles/{id}', [RoleController::class, 'destroy']);
 
 

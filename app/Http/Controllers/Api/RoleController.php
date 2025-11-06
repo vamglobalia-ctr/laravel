@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
@@ -176,6 +177,26 @@ public function update(Request $request, $id)
         ], 500);
     }
 }
+public function destroy($id)
+{
+    $role = Role::findOrFail($id);
 
+    DB::table('model_has_roles')->where('role_id', $role->id)->delete();
+    DB::table('role_has_permissions')->where('role_id', $role->id)->delete();
+    $role->delete();
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Role deleted and detached from all relationships'
+    ]);
+}
+
+public function getAllRoles(){
+    $roles = Role::all();
+    return response()->json([
+        'status' => true,
+        'roles' => $roles
+    ]);
+}
 
 }

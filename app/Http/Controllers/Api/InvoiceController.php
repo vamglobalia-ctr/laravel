@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Imports\InvoiceImport;
+use App\Models\Invoice;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -42,4 +43,24 @@ class InvoiceController extends Controller
             ], 500);
         }
     }
+
+    public function getExcelData()
+    {
+        try {
+            $data = Invoice::all();
+    
+            return response()->json([
+                'status' => true,
+                'data' => $data
+            ], 200);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to fetch Excel data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
 }
