@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\InvoiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RoleController;
@@ -18,10 +19,10 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::middleware(['auth:sanctum', 'role:superAdmin'])->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/roles', [RoleController::class, 'store']) ->middleware('permission:create roles');
+    Route::post('/roles', [RoleController::class, 'store'])->middleware('permission:create roles');
     Route::get('/roles', [RoleController::class, 'index']);
     Route::post('/assign-role', [RoleController::class, 'assignRoleToUser']);
-    Route::post('/assign-permissions', [RoleController::class, 'assignPermissionsToRole']);
+    // Route::post('/assign-permissions', [RoleController::class, 'assignPermissionsToRole']);
 
 });
 
@@ -39,7 +40,13 @@ Route::middleware(['auth:sanctum', 'permission:delete dashboard'])
 
 
 
-Route::get('/check-permission/{userId}/', [RoleController::class, 'getUserPermissions']);
+Route::get('/check-permission/{roleId}/', [RoleController::class, 'getRolePermissions']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getPermission', [RoleController::class, 'getAllPermissions']);
 });
+
+
+Route::post('/invoices/import', [InvoiceController::class,'import'])->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->put('/update-roles-permission/{id}', [RoleController::class, 'update']);
+
+

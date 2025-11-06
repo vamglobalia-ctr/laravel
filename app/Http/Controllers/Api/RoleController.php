@@ -21,21 +21,64 @@ class RoleController extends Controller
         ]);
     }
 
+  
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|unique:roles,name'
-        ]);
-
-        $role = Role::create(['name' => $validated['name']]);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Role created successfully',
-            'role' => $role
-        ], 201);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|unique:roles,name',
+                'permissions' => 'nullable|array',
+                'permissions.*' => 'string'
+            ]);
+    
+            
+            $role = Role::create([
+                'name' => $validated['name'],
+                'guard_name' => 'web'
+            ]);
+    
+            
+            if (!empty($validated['permissions'])) {
+                $permissions = Permission::whereIn('name', $validated['permissions'])
+                    ->where('guard_name', 'web')
+                    ->get();
+    
+                if ($permissions->count() !== count($validated['permissions'])) {
+                    throw new PermissionDoesNotExist("One or more permissions do not exist for web guard");
+                }
+    
+                $role->syncPermissions($permissions);
+            }
+    
+            return response()->json([
+                'status' => true,
+                'message' => 'Role created successfully',
+                'role' => $role->load('permissions')
+            ], 201);
+    
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+    
+        } catch (PermissionDoesNotExist $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 404);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unexpected error occurred',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-
+    
+    
     public function assignRoleToUser(Request $request)
     {
         $validated = $request->validate([
@@ -53,77 +96,24 @@ class RoleController extends Controller
     }
 
    
-    public function assignPermissionsToRole(Request $request)
+ 
+    public function getRolePermissions($roleId)
     {
-        try {
-       
-            $validated = $request->validate([
-                'role' => 'required|string|exists:roles,name',
-                'permissions' => 'required|array',
-                'permissions.*' => 'string'
-            ]);
+        $role = Role::where('id', $roleId)->where('guard_name', 'web')->first();
     
-           
-            $role = Role::where('name', $validated['role'])->where('guard_name', 'web')->first();
-            if (!$role) {
-                throw new RoleDoesNotExist("Role {$validated['role']} does not exist for web guard");
-            }
-    
-          
-            $permissions = Permission::whereIn('name', $validated['permissions'])
-                ->where('guard_name', 'web')
-                ->get();
-    
-            if ($permissions->count() !== count($validated['permissions'])) {
-                throw new PermissionDoesNotExist("One or more permissions do not exist for web guard");
-            }
-    
-           
-            $role->syncPermissions($permissions);
-    
-            return response()->json([
-                'status' => true,
-                'message' => "Permissions assigned to role successfully",
-                'role' => $role->load('permissions')
-            ], 200);
-    
-        } catch (ValidationException $e) {
+        if (!$role) {
             return response()->json([
                 'status' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-    
-        } catch (RoleDoesNotExist | PermissionDoesNotExist $e) {
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
+                'message' => 'Role not found'
             ], 404);
-    
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Unexpected error occurred',
-                'error' => $e->getMessage()
-            ], 500);
         }
-    }
-    public function getUserPermissions($userId)
-{
-    $user = Role::find($userId);
-    if (!$user) {
+    
         return response()->json([
-            'status' => false,
-            'message' => 'User not found'
-        ], 404);
+            'status' => true,
+            'role' => $role->only('id', 'name', 'guard_name'),
+            'permissions' => $role->permissions->pluck('name')
+        ], 200);
     }
-
-    return response()->json([
-        'status' => true,
-        'user' => $user->only('id','name','guard_name'),
-        'permissions' => $user->getAllPermissions()->pluck('name')
-    ], 200);
-}
 
 
 public function getAllPermissions(Request $request)
@@ -152,6 +142,39 @@ public function getAllPermissions(Request $request)
         'status' => true,
         'permissions' => $permissions
     ], 200);
+}
+public function update(Request $request, $id)
+{
+    try {
+        $validated = $request->validate([
+            'name' => 'required|string|unique:roles,name,' . $id,
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'string'
+        ]);
+
+        $role = Role::findOrFail($id);
+        $role->update(['name' => $validated['name']]);
+
+        if (!empty($validated['permissions'])) {
+            $permissions = Permission::whereIn('name', $validated['permissions'])
+                ->where('guard_name', 'web')
+                ->get();
+
+            $role->syncPermissions($permissions);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role updated successfully',
+            'role' => $role->load('permissions')
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Update failed',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 }
 
 
