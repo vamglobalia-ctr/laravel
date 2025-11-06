@@ -14,42 +14,29 @@ Route::get('/user', function (Request $request) {
 
 
 
-
+// login
 Route::post('/login', [AuthController::class, 'login'])->name('login');
-
+// roles 
 Route::middleware(['auth:sanctum', 'role:superAdmin'])->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/roles', [RoleController::class, 'store'])->middleware('permission:create roles');
     Route::get('/roles', [RoleController::class, 'index']);
     Route::post('/assign-role', [RoleController::class, 'assignRoleToUser']);
-   
-
+    Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
 });
 
-Route::middleware(['auth:sanctum', 'permission:view dashboard'])
-    ->get('/dashboard', [DashboardController::class, 'index']);
-
-Route::middleware(['auth:sanctum', 'permission:insert dashboard'])
-    ->post('/dashboard', [DashboardController::class, 'store']);
-
-Route::middleware(['auth:sanctum', 'permission:edit dashboard'])
-    ->put('/dashboard/{id}', [DashboardController::class, 'update']);
-
-Route::middleware(['auth:sanctum', 'permission:delete dashboard'])
-    ->delete('/dashboard/{id}', [DashboardController::class, 'destroy']);
-
-
-
-Route::get('/check-permission/{roleId}/', [RoleController::class, 'getRolePermissions']);
-Route::get('/check-role',[RoleController::class,'getAllRoles']);
+// role-permision-check
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/getPermission', [RoleController::class, 'getAllPermissions']);
+    Route::put('/update-roles-permission/{id}', [RoleController::class, 'update']);
+    Route::get('/check-permission/{roleId}/', [RoleController::class, 'getRolePermissions']);
+    Route::get('/check-role',[RoleController::class,'getAllRoles']);
 });
 
-
-Route::post('/invoices/import', [InvoiceController::class,'import'])->middleware('auth:sanctum');
-Route::middleware('auth:sanctum')->put('/update-roles-permission/{id}', [RoleController::class, 'update']);
-Route::get('/getExcelData' , [InvoiceController::class,'getExcelData']);
-Route::middleware('auth:sanctum')->delete('/roles/{id}', [RoleController::class, 'destroy']);
+// excel import and data fetch
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/invoices/import', [InvoiceController::class, 'import']);
+    Route::get('/getExcelData', [InvoiceController::class, 'getExcelData']);
+});
 
 
