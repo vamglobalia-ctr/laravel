@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 class InvoiceController extends Controller
 {
     public function import(Request $request)
@@ -108,6 +110,106 @@ private function convertExcelDate($value)
         return null;
     }
 }
+public function store(Request $request)
+{
+    try {
+        
+        $validated = $request->validate([
+            'project_id'             => 'required|string|max:50',
+            'client_name'            => 'nullable|string|max:100',
+            'tl'                     => 'nullable|string|max:100',
+            'invoice_link'           => 'nullable|string',
+            'invoice_sent_date'      => 'nullable|date',
+            'invoice_cycle_start'    => 'nullable|date',
+            'invoice_cycle_end'      => 'nullable|date',
+            'bank_account_name'      => 'nullable|string|max:100',
+            'invoice_status'         => 'nullable|string|max:100',
+            'amount_usd'             => 'nullable|numeric|min:0',
+            'sent_via'               => 'nullable|string|max:100',
+            'invoice_release_status' => 'nullable|string|max:100',
+            'followup_date'          => 'nullable|date',
+            'release_amount_date'    => 'nullable|date',
+            'release_amount_inr'     => 'nullable|numeric|min:0',
+        ]);
 
+      
+        $invoice = Invoice::create([
+            'project_id'             => $validated['project_id'],
+            'client_name'            => $validated['client_name'] ?? null,
+            'tl'                     => $validated['tl'] ?? null,
+            'invoice_link'           => $validated['invoice_link'] ?? null,
+            'invoice_sent_date'      => $validated['invoice_sent_date'] ?? null,
+            'invoice_cycle_start'    => $validated['invoice_cycle_start'] ?? null,
+            'invoice_cycle_end'      => $validated['invoice_cycle_end'] ?? null,
+            'bank_account_name'      => $validated['bank_account_name'] ?? null,
+            'invoice_status'         => $validated['invoice_status'] ?? null,
+            'amount_usd'             => $validated['amount_usd'] ?? 0,
+            'sent_via'               => $validated['sent_via'] ?? null,
+            'invoice_release_status' => $validated['invoice_release_status'] ?? null,
+            'followup_date'          => $validated['followup_date'] ?? null,
+            'release_amount_date'    => $validated['release_amount_date'] ?? null,
+            'release_amount_inr'     => $validated['release_amount_inr'] ?? 0,
+        ]);
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Invoice stored successfully',
+            'data'    => $invoice
+        ], 201);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'Validation failed',
+            'errors'  => $e->errors(),
+        ], 422);
+
+    } catch (\Exception $e) {
+        Log::error('Invoice store failed | Error: ' . $e->getMessage());
+        return response()->json([
+            'status'  => false,
+            'message' => 'An unexpected error occurred while storing the invoice.'
+        ], 500);
+    }
+}
+
+public function editInvoice($id){
+    try{
+        $invoice = Invoice::findOrFail($id);
+        return response()->json([
+            'status' => true,
+            'data' => $invoice
+        ],200);
+    }catch(ModelNotFoundException $e){
+        return response()->json([
+            'status' => false,
+            'message' => 'Invoice not found'
+        ],404);
+    }
+}
+public function destroy($id)
+{
+    try {
+        $invoice = Invoice::findOrFail($id);
+        $invoice->delete(); 
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Invoice soft deleted successfully'
+        ], 200);
+
+    } catch (ModelNotFoundException $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'Invoice not found'
+        ], 404);
+    } catch (\Exception $e) {
+        Log::error('Invoice delete failed | Error: ' . $e->getMessage());
+        return response()->json([
+            'status'  => false,
+            'message' => 'An error occurred while deleting the invoice'
+        ], 500);
+    }
+}
 
 }

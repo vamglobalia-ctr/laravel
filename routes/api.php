@@ -35,10 +35,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // excel import and data fetch
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/invoices/store', [InvoiceController::class, 'store']);
     Route::post('/invoices/import', [InvoiceController::class, 'import']);
     Route::get('/getExcelData', [InvoiceController::class, 'getExcelData']);
     Route::put('/invoices/update/{id}', [InvoiceController::class, 'updateInvoice']);
-
+    Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy']);
+    Route::get('/editInvoice/{id}', [InvoiceController::class, 'editInvoice']);
 });
 
 
