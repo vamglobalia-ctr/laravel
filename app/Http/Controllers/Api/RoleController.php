@@ -130,7 +130,8 @@ public function getAllPermissions(Request $request)
     }
 
 
-    if ($user->hasRole('superAdmin')) {
+    if ($user->roles->contains('id' , 1)) {
+     
         $permissions = Permission::select('name')->get();
     } else {
        
@@ -189,7 +190,7 @@ public function destroy($id)
 
     return response()->json([
         'status' => true,
-        'message' => 'Role deleted and detached from all relationships'
+        'message' => 'Role deleted Successfully'
     ]);
 }
 

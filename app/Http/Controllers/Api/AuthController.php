@@ -145,7 +145,7 @@ class AuthController extends Controller
     public function getAllUsers(){
 
         try{
-            $users = User::with('roles')->get();
+            $users = User::all();
             return response()->json([
                 'status' => true,
                 'data' => $users
