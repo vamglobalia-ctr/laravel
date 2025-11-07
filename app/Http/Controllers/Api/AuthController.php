@@ -111,13 +111,16 @@ class AuthController extends Controller
             }
 
             $token = $user->createToken('myapptoken')->plainTextToken;
-
+            $roles = $user->getRoleNames(); 
+            $permissions = $user->getAllPermissions()->pluck('name');
             return response()->json([
                 'status' => true,
                 'message' => 'Login successful',
                 'data' => [
-                    'user' => $user,
-                    'token' => $token
+                    'user' => $user->only('id','name'),
+                    'token' => $token,
+                    'roles' => $roles,
+                    'permissions' => $permissions
                 ]
             ], 200);
 

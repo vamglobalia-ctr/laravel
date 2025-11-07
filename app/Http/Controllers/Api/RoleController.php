@@ -148,13 +148,15 @@ public function update(Request $request, $id)
 {
     try {
         $validated = $request->validate([
-            'name' => 'required|string|unique:roles,name,' . $id,
+            'name' => 'sometimes|string|unique:roles,name,' . $id,
             'permissions' => 'nullable|array',
             'permissions.*' => 'string'
         ]);
 
         $role = Role::findOrFail($id);
-        $role->update(['name' => $validated['name']]);
+        if (isset($validated['name'])) {
+            $role->update(['name' => $validated['name']]);
+        }
 
         if (!empty($validated['permissions'])) {
             $permissions = Permission::whereIn('name', $validated['permissions'])
