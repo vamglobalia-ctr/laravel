@@ -142,13 +142,36 @@ class AuthController extends Controller
         }
     }
 
-    public function getAllUsers(){
+    // public function getAllUsers(){
+        
+    //     try{
+    //         // $users = User::all();
+    //         $users = User::with('roles:id,name')->get();
+            
+    //         return response()->json([
+    //             'status' => true,
+    //             'data' => $users,
+    //         ], 200);
+    //     } catch (Exception $e) {
+    //         Log::error('Error fetching users: ' . $e->getMessage());
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Unexpected error occurred',
+    //         ], 500);
+    //     }
+      
+    // }
 
-        try{
-            $users = User::all();
+    public function getAllUsers()
+    {
+        try {
+            $users = User::join('roles', 'users.role_id', '=', 'roles.id')
+                ->select('users.id', 'users.name', 'users.email', 'roles.name as role_name' , 'roles.id as role_id')
+                ->get();
+    
             return response()->json([
                 'status' => true,
-                'data' => $users
+                'data' => $users,
             ], 200);
         } catch (Exception $e) {
             Log::error('Error fetching users: ' . $e->getMessage());
@@ -157,10 +180,8 @@ class AuthController extends Controller
                 'message' => 'Unexpected error occurred',
             ], 500);
         }
-      
     }
-
-
+    
     public function editUser($id){
         try{
             $users = User::findOrFail($id);
