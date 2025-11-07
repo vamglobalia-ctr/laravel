@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
@@ -137,4 +138,103 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    public function getAllUsers(){
+
+        try{
+            $users = User::with('roles')->get();
+            return response()->json([
+                'status' => true,
+                'data' => $users
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Error fetching users: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Unexpected error occurred',
+            ], 500);
+        }
+      
+    }
+
+
+    public function editUser($id){
+        try{
+            $users = User::findOrFail($id);
+            return response()->json([
+                'status' => true,
+                'data' => $users
+            ], 200);
+        }catch(Exception $e){
+            Log::error('Error edit Fetching user: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found',
+            ], 404);
+        }
+    }
+
+    public function updateUser(Request $request , $id){
+        $users = User::findOrFail($id);
+
+        try{
+            $validated = $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'email' => 'sometimes|email|unique:users,email,'.$users->id,
+                'password' => 'sometimes|min:6',
+                'role_id' =>'sometimes|integer|exists:roles,id'
+            ]);
+            if(isset($validated['name'])){
+                $users->name = $validated['name'];
+            }
+            if(isset($validated['email'])){
+                $users->email = $validated['email'];
+            }
+            if(isset($validated['password'])){
+                $users->password = Hash::make($validated['password']);
+            }
+            if(isset($validated['role_id'])){
+                $users->role_id = $validated['role_id'];
+            }
+
+            $users->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User updated successfully',
+                'data' => $users
+            ], 200);
+    }catch(Exception $e){
+        Log::error('Error updating user: ' . $e->getMessage());
+        return response()->json([
+            'status' => false,
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+    }
+
+    public function Userdestroy($id)
+{
+    try {
+        $users = User::findOrFail($id);
+        $users->delete(); 
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'User soft deleted successfully'
+        ], 200);
+
+    } catch (ModelNotFoundException $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'User not found'
+        ], 404);
+    } catch (\Exception $e) {
+        Log::error('User delete failed | Error: ' . $e->getMessage());
+        return response()->json([
+            'status'  => false,
+            'message' => 'An error occurred while deleting the User'
+        ], 500);
+    }
+}
 }

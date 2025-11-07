@@ -90,7 +90,7 @@ class InvoiceController extends Controller
 
         return response()->json(['status' => true, 'message' => 'Invoice updated successfully', 'data' => $invoice], 200);
 
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+    } catch (ModelNotFoundException $e) {
         return response()->json(['status' => false, 'message' => 'Invoice not found'], 404);
     } catch (\Exception $e) {
         Log::error('Invoice update failed for ID ' . $id . ' | Error: ' . $e->getMessage());

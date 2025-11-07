@@ -31,6 +31,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/check-permission/{roleId}/', [RoleController::class, 'getRolePermissions']);
     Route::get('/check-role',[RoleController::class,'getAllRoles']);
     Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
+    Route::get('/getUser', [AuthController::class, 'getAllUsers']);
+    Route::get('/editUser/{id}', [AuthController::class, 'editUser']);
+    Route::put('/updateUser/{id}', [AuthController::class, 'updateUser']);
+    Route::delete('/deleteUser/{id}', [AuthController::class, 'Userdestroy']);
 });
 
 // excel import and data fetch
@@ -39,7 +43,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/invoices/import', [InvoiceController::class, 'import']);
     Route::get('/getExcelData', [InvoiceController::class, 'getExcelData']);
     Route::put('/invoices/update/{id}', [InvoiceController::class, 'updateInvoice']);
-    Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy']);
+    Route::delete('/delete/invoices/{id}', [InvoiceController::class, 'destroy']);
     Route::get('/editInvoice/{id}', [InvoiceController::class, 'editInvoice']);
 });
 
