@@ -195,7 +195,7 @@ public function destroy($id)
 
         return response()->json([
             'status'  => true,
-            'message' => 'Invoice soft deleted successfully'
+            'message' => 'Invoice deleted successfully'
         ], 200);
 
     } catch (ModelNotFoundException $e) {

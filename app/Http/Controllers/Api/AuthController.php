@@ -221,7 +221,7 @@ class AuthController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'User soft deleted successfully'
+            'message' => 'User deleted successfully'
         ], 200);
 
     } catch (ModelNotFoundException $e) {
