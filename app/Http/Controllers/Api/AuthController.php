@@ -21,7 +21,7 @@ class AuthController extends Controller
         try {
            
             $requestUser = $request->user();
-            if (!$requestUser || !$requestUser->hasRole('superAdmin')) {
+            if (!$requestUser || !$requestUser->roles->contains('id' , 1)) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Only SuperAdmin can register users with roles'
@@ -142,30 +142,12 @@ class AuthController extends Controller
         }
     }
 
-    // public function getAllUsers(){
-        
-    //     try{
-    //         // $users = User::all();
-    //         $users = User::with('roles:id,name')->get();
-            
-    //         return response()->json([
-    //             'status' => true,
-    //             'data' => $users,
-    //         ], 200);
-    //     } catch (Exception $e) {
-    //         Log::error('Error fetching users: ' . $e->getMessage());
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Unexpected error occurred',
-    //         ], 500);
-    //     }
-      
-    // }
 
     public function getAllUsers()
     {
         try {
             $users = User::join('roles', 'users.role_id', '=', 'roles.id')
+            ->whereNull('roles.deleted_at') 
                 ->select('users.id', 'users.name', 'users.email', 'roles.name as role_name' , 'roles.id as role_id')
                 ->get();
     
