@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\InvoiceController;
 use Illuminate\Http\Request;
@@ -47,4 +48,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/editInvoice/{id}', [InvoiceController::class, 'editInvoice']);
 });
 
-
+Route::get('/get-currencies', [CurrencyController::class, 'getCurrencies']);
