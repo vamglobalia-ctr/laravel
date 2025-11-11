@@ -130,6 +130,8 @@ public function store(Request $request)
             'followup_date'          => 'nullable|date',
             'release_amount_date'    => 'nullable|date',
             'release_amount_inr'     => 'nullable|numeric|min:0',
+            'currency_status'    => 'nullable',
+            'release_currency_status'    => 'nullable',
         ]);
 
       
@@ -149,6 +151,8 @@ public function store(Request $request)
             'followup_date'          => $validated['followup_date'] ?? null,
             'release_amount_date'    => $validated['release_amount_date'] ?? null,
             'release_amount_inr'     => $validated['release_amount_inr'] ?? 0,
+            'currency_status'        => $validated['currency_status'] ?? 0,
+            'release_currency_status'=> $validated['release_currency_status'] ?? 0,
         ]);
 
         return response()->json([
